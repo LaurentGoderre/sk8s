@@ -14,7 +14,6 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/moby/moby/api/types/container"
-	"github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/api/types/network"
 	ociv1 "github.com/opencontainers/image-spec/specs-go/v1"
 	tc "github.com/testcontainers/testcontainers-go"
@@ -123,16 +122,6 @@ func GetCluster(t *testing.T, ctx context.Context, opts ...CustomizeClusterOptio
 			},
 		),
 		tc.WithHostConfigModifier(func(hc *container.HostConfig) {
-			// TODO: Remove if/when Testcontainers supports chained config functions
-			hc.Privileged = true
-			hc.CgroupnsMode = "host"
-			hc.Tmpfs = map[string]string{
-				"/run":     "",
-				"/var/run": "",
-			}
-			hc.Mounts = []mount.Mount{}
-			// ----
-
 			debugPorts := []string{
 				"2345",  // delve debugger
 				"32345", // delve debugger
