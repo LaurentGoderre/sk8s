@@ -133,7 +133,7 @@ func GetCluster(t *testing.T, ctx context.Context, opts ...CustomizeClusterOptio
 			sk8sOutName := fmt.Sprintf("sk8s-out-%s", url.PathEscape(t.Name()))
 			hc.Mounts = append(hc.Mounts, mount.Mount{
 				Type:   mount.TypeVolume,
-				Source: "sk8s-out-" + sk8sOutName,
+				Source: sk8sOutName,
 				Target: "/out",
 			})
 
