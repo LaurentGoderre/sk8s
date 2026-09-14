@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/netip"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
@@ -129,9 +130,10 @@ func GetCluster(t *testing.T, ctx context.Context, opts ...CustomizeClusterOptio
 				"9229",  // node debugger
 			}
 
+			sk8sOutName := fmt.Sprintf("sk8s-out-%s", url.PathEscape(t.Name()))
 			hc.Mounts = append(hc.Mounts, mount.Mount{
 				Type:   mount.TypeVolume,
-				Source: "sk8s-out-" + t.Name(),
+				Source: "sk8s-out-" + sk8sOutName,
 				Target: "/out",
 			})
 
