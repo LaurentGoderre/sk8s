@@ -120,6 +120,15 @@ func (c *TestCluster) ApplyRemoteYAMLs(ctx context.Context, urls []string) error
 		if err != nil {
 			return fmt.Errorf("failed to apply YAML from %s: %w (stderr: %s)", url, err, stderr)
 		}
+
+		data, err := io.ReadAll(stderr)
+		if err != nil {
+			return err
+		}
+
+		if strings.Contains(string(data), "error:") {
+			return fmt.Errorf("%s", data)
+		}
 	}
 
 	return nil
