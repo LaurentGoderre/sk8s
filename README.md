@@ -110,6 +110,7 @@ cluster, err := sk8s.GetCluster(t, ctx,
         Disable:      []string{"metrics-server"},
     }),
     sk8s.WithLoggingOptions(true, true), // stream cluster warnings and pod logs
+    sk8s.WithImage("rancher/k3s:v1.33.5-k3s1"), // use a different k3s image
 )
 ```
 

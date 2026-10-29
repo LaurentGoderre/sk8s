@@ -78,6 +78,7 @@ cluster, err := sk8s.GetCluster(t, ctx,
 ### Cluster Option Functions
 
 ```go
+func WithImage(image string) CustomizeClusterOption
 func WithClusterConfig(config ClusterConfig) CustomizeClusterOption
 func WithCustomizers(customize ...tc.ContainerCustomizer) CustomizeClusterOption
 func WithLoggingOptions(clusterWarnings bool, podLogs bool) CustomizeClusterOption
