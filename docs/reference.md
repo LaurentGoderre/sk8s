@@ -4,10 +4,46 @@
 
 ### TestCluster
 
-`TestCluster` is the central type representing a running test cluster. All cluster operations are methods on this type.
+`TestCluster` is the central type representing a running test cluster. All cluster operations are methods on this type. Obtain one with `GetCluster` or `GetClusterWithProvider`.
 
 ```go
 type TestCluster struct {}
+```
+
+### ClusterProvider
+
+A `ClusterProvider` creates a cluster and performs the provider-specific operations behind `TestCluster` (image loading, exec, file copy, kubeconfig). Its methods are unexported, so only providers defined in this package can implement it. `K3sClusterProvider` is the provider shipped today.
+
+```go
+type ClusterProvider interface {
+    getCluster(t *testing.T, ctx context.Context) (*TestCluster, error)
+    getKubeConfig(ctx context.Context) ([]byte, error)
+    loadImages(ctx context.Context, images ...string) error
+    loadImagesWithPlatform(ctx context.Context, images []string, platform *ociv1.Platform) error
+    exec(ctx context.Context, cmd []string) (int, io.Reader, error)
+    copyFileToCluster(ctx context.Context, hostFilePath string, clusterFilePath string, fileMode int64) error
+}
+```
+
+### K3sClusterProvider
+
+Provider that runs the cluster in a k3s container via Testcontainers. `Opts` customise the cluster before it starts. Pass a pointer to `GetClusterWithProvider`.
+
+```go
+type K3sClusterProvider struct {
+    Opts []CustomizeClusterOption
+}
+
+// Cluster returns the underlying k3s container once the cluster has been created.
+func (p *K3sClusterProvider) Cluster() *k3s.K3sContainer
+```
+
+### CustomizeClusterOption
+
+A function that customises cluster creation. See [Cluster Option Functions](#cluster-option-functions).
+
+```go
+type CustomizeClusterOption func(opts *ClusterOptions) error
 ```
 
 ### ClusterConfig
@@ -56,29 +92,44 @@ type HelmInstallOptions struct {
 
 ### GetCluster
 
-Creates and starts a cluster for testing. The cluster is automatically terminated when the test ends.
+Creates and starts a cluster with the default k3s provider and default settings. The cluster is automatically terminated when the test ends. To customise the cluster, use `GetClusterWithProvider`.
 
 ```go
-func GetCluster(t *testing.T, ctx context.Context, opts ...CustomizeClusterOption) (*TestCluster, error)
+func GetCluster(t *testing.T, ctx context.Context) (*TestCluster, error)
+```
+
+### GetClusterWithProvider
+
+Creates and starts a cluster using the given provider. The cluster is automatically terminated when the test ends.
+
+```go
+func GetClusterWithProvider(t *testing.T, ctx context.Context, provider ClusterProvider) (*TestCluster, error)
 ```
 
 **Example:**
 
 ```go
-cluster, err := sk8s.GetCluster(t, ctx,
-    sk8s.WithClusterConfig(sk8s.ClusterConfig{
-        Disable: []string{
-            "traefik",
-        },
-    }),
-    sk8s.WithLoggingOptions(true, false),
-)
+cluster, err := sk8s.GetClusterWithProvider(t, ctx, &sk8s.K3sClusterProvider{
+    Opts: []sk8s.CustomizeClusterOption{
+        sk8s.WithClusterConfig(sk8s.ClusterConfig{
+            Disable: []string{
+                "traefik",
+            },
+        }),
+        sk8s.WithLoggingOptions(true, false),
+    },
+})
 ```
 
 ### Cluster Option Functions
 
+Pass these in `K3sClusterProvider.Opts`.
+
 ```go
+// Overrides the k3s image (default "rancher/k3s:v1.34.1-k3s1"). Returns an error if image is not a valid reference.
 func WithImage(image string) CustomizeClusterOption
+
+// Replaces DefaultConfig.
 func WithClusterConfig(config ClusterConfig) CustomizeClusterOption
 func WithCustomizers(customize ...tc.ContainerCustomizer) CustomizeClusterOption
 func WithLoggingOptions(clusterWarnings bool, podLogs bool) CustomizeClusterOption
@@ -89,7 +140,6 @@ func WithLoggingOptions(clusterWarnings bool, podLogs bool) CustomizeClusterOpti
 ## Client Access
 
 ```go
-func (c *TestCluster) Cluster() *k3s.K3sContainer
 func (c *TestCluster) Client() *kubernetes.Clientset
 func (c *TestCluster) DynamicClient(ctx context.Context) (dynamic.Interface, error)
 func (c *TestCluster) ApiExtClient(ctx context.Context) (*apiextensionsclientset.Clientset, error)

@@ -101,20 +101,43 @@ func TestMyChart(t *testing.T) {
 
 ## Cluster configuration
 
-`GetCluster` accepts functional options to customise the cluster before it starts.
+Clusters are created by a *cluster provider*. `GetCluster(t, ctx)` is shorthand for a k3s provider with default settings. To customise the cluster before it starts, pass a `K3sClusterProvider` with functional options to `GetClusterWithProvider`.
 
 ```go
-cluster, err := sk8s.GetCluster(t, ctx,
-    sk8s.WithClusterConfig(sk8s.ClusterConfig{
-        APIServerArg: []string{"feature-gates=SomeFeature=true"},
-        Disable:      []string{"metrics-server"},
-    }),
-    sk8s.WithLoggingOptions(true, true), // stream cluster warnings and pod logs
-    sk8s.WithImage("rancher/k3s:v1.33.5-k3s1"), // use a different k3s image
-)
+cluster, err := sk8s.GetClusterWithProvider(t, ctx, &sk8s.K3sClusterProvider{
+    Opts: []sk8s.CustomizeClusterOption{
+        sk8s.WithClusterConfig(sk8s.ClusterConfig{
+            APIServerArg: []string{"feature-gates=SomeFeature=true"},
+            Disable:      []string{"metrics-server"},
+        }),
+        sk8s.WithLoggingOptions(true, true),       // stream cluster warnings and pod logs
+        sk8s.WithImage("rancher/k3s:v1.33.5-k3s1"), // use a different k3s image
+    },
+})
 ```
 
-`DefaultConfig` disables `metrics-server` and enables the `ImageVolume` feature gate.
+`DefaultConfig` disables `metrics-server` and enables the `ImageVolume` feature gate. `WithClusterConfig` replaces `DefaultConfig` rather than merging with it, so include any defaults you still want.
+
+### Cluster options
+
+| Option | Description |
+|---|---|
+| `WithImage` | k3s image to run (default `rancher/k3s:v1.34.1-k3s1`). The reference is validated when the cluster is created. |
+| `WithClusterConfig` | k3s configuration (see `ClusterConfig` below) |
+| `WithLoggingOptions` | Stream cluster warnings and/or pod logs to the test log |
+| `WithCustomizers` | Pass additional [Testcontainers `ContainerCustomizer`](https://golang.testcontainers.org/) options directly to the k3s container (e.g. extra environment variables or bind mounts) |
+
+### Accessing the k3s container
+
+`TestCluster` no longer exposes the underlying container. Keep a reference to the provider and call `Cluster()` on it.
+
+```go
+provider := &sk8s.K3sClusterProvider{}
+cluster, err := sk8s.GetClusterWithProvider(t, ctx, provider)
+require.NoError(t, err)
+
+container := provider.Cluster() // *k3s.K3sContainer
+```
 
 ### `ClusterConfig` fields
 
@@ -127,7 +150,6 @@ cluster, err := sk8s.GetCluster(t, ctx,
 | `ClusterCIRD` | Pod CIDR override |
 | `DisableNetworkPolicy` | Disable network policy enforcement |
 | `PauseImage` | Custom pause image |
-| `WithCustomizers` passes additional [Testcontainers `ContainerCustomizer`](https://golang.testcontainers.org/) options directly to the k3s container (e.g. extra environment variables or bind mounts). |
 
 ## Reference
 
