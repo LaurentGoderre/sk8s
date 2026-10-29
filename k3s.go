@@ -54,6 +54,20 @@ func (opt CustomizeClusterOption) Customize(opts *ClusterOptions) error {
 	return opt(opts)
 }
 
+// WithImage overrides the k3s image used for the cluster
+// (e.g. "rancher/k3s:v1.33.5-k3s1"). The image must be a valid image reference.
+func WithImage(image string) CustomizeClusterOption {
+	return func(opts *ClusterOptions) error {
+		if _, err := reference.ParseNormalizedNamed(image); err != nil {
+			return fmt.Errorf("invalid k3s image %q: %w", image, err)
+		}
+
+		opts.image = image
+
+		return nil
+	}
+}
+
 func WithClusterConfig(config ClusterConfig) CustomizeClusterOption {
 	return func(opts *ClusterOptions) error {
 		opts.config = config
