@@ -109,7 +109,7 @@ func (p *K3sClusterProvider) Cluster() *k3s.K3sContainer {
 	return p.cluster
 }
 
-func (p K3sClusterProvider) getCluster(t *testing.T, ctx context.Context) (*TestCluster, error) {
+func (p *K3sClusterProvider) getCluster(t *testing.T, ctx context.Context) (*TestCluster, error) {
 	options := ClusterOptions{
 		image:  defaultImage,
 		config: DefaultConfig,

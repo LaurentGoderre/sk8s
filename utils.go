@@ -20,8 +20,7 @@ import (
 )
 
 func (c *TestCluster) Exec(ctx context.Context, cmd []string) (int, io.Reader, error) {
-	p := *c.clusterProvider
-	return p.exec(ctx, cmd)
+	return c.clusterProvider.exec(ctx, cmd)
 }
 
 func (c *TestCluster) ExecPod(ctx context.Context, namespace string, pod string, cmd []string) (bytes.Buffer, bytes.Buffer, error) {

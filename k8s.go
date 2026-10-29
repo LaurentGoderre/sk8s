@@ -20,7 +20,7 @@ type TestClusterInterface interface {
 
 type TestCluster struct {
 	TestClusterInterface
-	clusterProvider *ClusterProvider
+	clusterProvider ClusterProvider
 	client          *kubernetes.Clientset
 	dynamicClient   dynamic.Interface
 	apiExtClient    *apiextensionsclientset.Clientset
@@ -42,7 +42,13 @@ func GetCluster(t *testing.T, ctx context.Context) (*TestCluster, error) {
 }
 
 func GetClusterWithProvider(t *testing.T, ctx context.Context, provider ClusterProvider) (*TestCluster, error) {
-	return provider.getCluster(t, ctx)
+	cluster, err := provider.getCluster(t, ctx)
+	if err != nil {
+		return nil, err
+	}
+	cluster.clusterProvider = provider
+
+	return cluster, nil
 }
 
 func (c *TestCluster) Client() *kubernetes.Clientset {
@@ -85,23 +91,19 @@ func (c *TestCluster) ApiExtClient(ctx context.Context) (*apiextensionsclientset
 }
 
 func (c *TestCluster) LoadImages(ctx context.Context, images ...string) error {
-	p := *c.clusterProvider
-	return p.loadImages(ctx, images...)
+	return c.clusterProvider.loadImages(ctx, images...)
 }
 
 func (c *TestCluster) LoadImagesWithPlatform(ctx context.Context, images []string, platform *ociv1.Platform) error {
-	p := *c.clusterProvider
-	return p.loadImagesWithPlatform(ctx, images, platform)
+	return c.clusterProvider.loadImagesWithPlatform(ctx, images, platform)
 }
 
 func (c *TestCluster) getKubeConfig(ctx context.Context) ([]byte, error) {
-	p := *c.clusterProvider
-	return p.getKubeConfig(ctx)
+	return c.clusterProvider.getKubeConfig(ctx)
 }
 
 func (c *TestCluster) getClusterConfig(ctx context.Context) (*rest.Config, error) {
-	p := *c.clusterProvider
-	kubeConfigYaml, err := p.getKubeConfig(ctx)
+	kubeConfigYaml, err := c.clusterProvider.getKubeConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
