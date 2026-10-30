@@ -58,7 +58,7 @@ func (c *TestCluster) Client() *kubernetes.Clientset {
 
 func (c *TestCluster) DynamicClient(ctx context.Context) (dynamic.Interface, error) {
 	if c.dynamicClient == nil {
-		config, err := c.getClusterConfig(ctx)
+		config, err := c.GetClusterConfig(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -75,7 +75,7 @@ func (c *TestCluster) DynamicClient(ctx context.Context) (dynamic.Interface, err
 
 func (c *TestCluster) ApiExtClient(ctx context.Context) (*apiextensionsclientset.Clientset, error) {
 	if c.apiExtClient == nil {
-		config, err := c.getClusterConfig(ctx)
+		config, err := c.GetClusterConfig(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -107,11 +107,11 @@ func (c *TestCluster) CopyFileFromCluster(ctx context.Context, clusterFilePath s
 	return c.clusterProvider.copyFileFromCluster(ctx, clusterFilePath)
 }
 
-func (c *TestCluster) getKubeConfig(ctx context.Context) ([]byte, error) {
+func (c *TestCluster) GetKubeConfig(ctx context.Context) ([]byte, error) {
 	return c.clusterProvider.getKubeConfig(ctx)
 }
 
-func (c *TestCluster) getClusterConfig(ctx context.Context) (*rest.Config, error) {
+func (c *TestCluster) GetClusterConfig(ctx context.Context) (*rest.Config, error) {
 	kubeConfigYaml, err := c.clusterProvider.getKubeConfig(ctx)
 	if err != nil {
 		return nil, err

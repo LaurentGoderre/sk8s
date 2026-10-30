@@ -45,7 +45,7 @@ func (c *TestCluster) ExecPodContainer(ctx context.Context, namespace string, po
 		scheme.ParameterCodec,
 	)
 
-	config, err := c.getClusterConfig(ctx)
+	config, err := c.GetClusterConfig(ctx)
 	if err != nil {
 		return stdout, stderr, err
 	}

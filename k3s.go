@@ -195,6 +195,9 @@ func (p *K3sClusterProvider) getCluster(t *testing.T, ctx context.Context) (*Tes
 	p.cluster = k3sContainer
 
 	kubeConfigYaml, err := p.getKubeConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
 	restcfg, err := getClusterConfig(kubeConfigYaml)
 	if err != nil {
 		return nil, err
