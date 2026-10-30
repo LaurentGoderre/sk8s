@@ -22,6 +22,7 @@ type ClusterProvider interface {
     loadImagesWithPlatform(ctx context.Context, images []string, platform *ociv1.Platform) error
     exec(ctx context.Context, cmd []string) (int, io.Reader, error)
     copyFileToCluster(ctx context.Context, hostFilePath string, clusterFilePath string, fileMode int64) error
+    copyFileFromCluster(ctx context.Context, clusterFilePath string) (io.ReadCloser, error)
 }
 ```
 
@@ -252,6 +253,40 @@ func ChartSourceFromUrlAndAppVersion(repoUrl string, chartName string, appVersio
 ```go
 func (c *TestCluster) LoadImages(ctx context.Context, images ...string) error
 func (c *TestCluster) LoadImagesWithPlatform(ctx context.Context, images []string, platform *ociv1.Platform) error
+```
+
+---
+
+## File Transfer
+
+### CopyFileToCluster
+
+Copies a file from the host into the cluster node (for k3s, the k3s container).
+
+```go
+func (c *TestCluster) CopyFileToCluster(ctx context.Context, hostFilePath string, clusterFilePath string, fileMode int64) error
+```
+
+### CopyFileFromCluster
+
+Reads a file from the cluster node. The caller must close the returned reader.
+
+```go
+func (c *TestCluster) CopyFileFromCluster(ctx context.Context, clusterFilePath string) (io.ReadCloser, error)
+```
+
+**Example:**
+
+```go
+err := cluster.CopyFileToCluster(ctx, "testdata/config.yaml", "/tmp/config.yaml", 0o644)
+require.NoError(t, err)
+
+r, err := cluster.CopyFileFromCluster(ctx, "/tmp/config.yaml")
+require.NoError(t, err)
+defer r.Close()
+
+data, err := io.ReadAll(r)
+require.NoError(t, err)
 ```
 
 ---

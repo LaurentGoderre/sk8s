@@ -35,6 +35,7 @@ type ClusterProvider interface {
 	loadImagesWithPlatform(ctx context.Context, images []string, platform *ociv1.Platform) error
 	exec(ctx context.Context, cmd []string) (int, io.Reader, error)
 	copyFileToCluster(ctx context.Context, hostFilePath string, clusterFilePath string, fileMode int64) error
+	copyFileFromCluster(ctx context.Context, clusterFilePath string) (io.ReadCloser, error)
 }
 
 func GetCluster(t *testing.T, ctx context.Context) (*TestCluster, error) {
@@ -96,6 +97,14 @@ func (c *TestCluster) LoadImages(ctx context.Context, images ...string) error {
 
 func (c *TestCluster) LoadImagesWithPlatform(ctx context.Context, images []string, platform *ociv1.Platform) error {
 	return c.clusterProvider.loadImagesWithPlatform(ctx, images, platform)
+}
+
+func (c *TestCluster) CopyFileToCluster(ctx context.Context, hostFilePath string, clusterFilePath string, fileMode int64) error {
+	return c.clusterProvider.copyFileToCluster(ctx, hostFilePath, clusterFilePath, fileMode)
+}
+
+func (c *TestCluster) CopyFileFromCluster(ctx context.Context, clusterFilePath string) (io.ReadCloser, error) {
+	return c.clusterProvider.copyFileFromCluster(ctx, clusterFilePath)
 }
 
 func (c *TestCluster) getKubeConfig(ctx context.Context) ([]byte, error) {

@@ -296,7 +296,11 @@ func (c *K3sClusterProvider) exec(ctx context.Context, cmd []string) (int, io.Re
 }
 
 func (c *K3sClusterProvider) copyFileToCluster(ctx context.Context, hostFilePath string, clusterFilePath string, fileMode int64) error {
-	return c.cluster.CopyFileToContainer(ctx, hostFilePath, clusterFilePath, 0o644)
+	return c.cluster.CopyFileToContainer(ctx, hostFilePath, clusterFilePath, fileMode)
+}
+
+func (c *K3sClusterProvider) copyFileFromCluster(ctx context.Context, clusterFilePath string) (io.ReadCloser, error) {
+	return c.cluster.CopyFileFromContainer(ctx, clusterFilePath)
 }
 
 func getOutputVolumeName(testName string) string {
