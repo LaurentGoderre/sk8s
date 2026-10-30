@@ -52,6 +52,10 @@ func GetClusterWithProvider(t *testing.T, ctx context.Context, provider ClusterP
 	return cluster, nil
 }
 
+func (c *TestCluster) Provider() ClusterProvider {
+	return c.clusterProvider
+}
+
 func (c *TestCluster) Client() *kubernetes.Clientset {
 	return c.client
 }
